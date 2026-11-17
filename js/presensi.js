@@ -56,17 +56,16 @@ function tampilkan() {
   const hari = dataSaya.find((d) => d.tanggal === hariIni());
 
   if (!hari) {
-    $("status").textContent = "Belum check-in";
+    setStatus("Belum check-in", "Tekan tombol di bawah saat kamu tiba di tempat PKL.", "belum");
     $("btnCheckIn").disabled = false;
     $("btnCheckOut").disabled = true;
   } else if (!hari.checkOut) {
-    $("status").textContent =
-      `Sudah check-in pukul ${formatJam(hari.checkIn)} (${hari.status})`;
+    setStatus(hari.status, `Check-in pukul ${formatJam(hari.checkIn)}`, hari.status);
     $("btnCheckIn").disabled = true;
     $("btnCheckOut").disabled = false;
   } else {
-    $("status").textContent =
-      `Check-in ${formatJam(hari.checkIn)}, check-out ${formatJam(hari.checkOut)}`;
+    setStatus("Selesai",
+      `Masuk ${formatJam(hari.checkIn)}, pulang ${formatJam(hari.checkOut)}`, "selesai");
     $("btnCheckIn").disabled = true;
     $("btnCheckOut").disabled = true;
   }
@@ -127,11 +126,18 @@ $("btnCheckOut").addEventListener("click", async () => {
 
 // ---------- Login sementara ----------
 $("btnMasuk").addEventListener("click", async () => {
+  const tombol = $("btnMasuk");
+  tombol.disabled = true;
+  tombol.textContent = "Memeriksa...";
   try {
     await signInWithEmailAndPassword(auth, $("email").value, $("password").value);
     $("pesanLogin").textContent = "";
   } catch (e) {
     $("pesanLogin").textContent = "Email atau password salah.";
+    const kartu = document.querySelector(".login");
+    kartu.classList.remove("goyang");
+    void kartu.offsetWidth;
+    kartu.classList.add("goyang");
   }
 });
 
