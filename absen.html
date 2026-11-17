@@ -1,12 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="js/presensi.js"></script>
-    <title>Absensi PKL</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Absen PKL</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/presensi.js"></script>
 </head>
 <body>
-    
+
+  <!-- Login sementara, dipakai untuk menguji sampai login Wira jadi -->
+  <section id="boxLogin" hidden>
+    <h1>Absensi PKL</h1>
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="nama@sekolah.sch.id">
+    <label for="password">Password</label>
+    <input id="password" type="password">
+    <button id="btnMasuk">Masuk</button>
+    <p id="pesanLogin" role="status"></p>
+  </section>
+
+  <main id="boxAbsen" hidden>
+    <h1 id="sapaan">Halo</h1>
+    <p id="tanggal"></p>
+    <p id="jam"></p>
+    <p id="status">Memuat...</p>
+
+    <button id="btnCheckIn">Check-in sekarang</button>
+    <button id="btnCheckOut">Check-out</button>
+    <p id="pesan" role="status"></p>
+
+    <h2>Riwayat 5 hari terakhir</h2>
+    <ul id="riwayat"></ul>
+
+    <button id="btnKeluar">Keluar</button>
+  </main>
+
 </body>
 </html>
