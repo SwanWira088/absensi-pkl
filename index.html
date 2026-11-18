@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absensi PKL</title>
+<style>
+  :root {
+    --hijau-tua: #0b4f47;
+    --hijau: #11705f;
+    --hijau-muda: #e2f1ec;
+    --kertas: #f5f7f6;
+    --teks: #1c2a27;
+    --teks-lembut: #55645f;
+    --garis: #cfd9d5;
+    --merah: #a32b2b;
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body { font-family: var(--font); color: var(--teks); background: var(--kertas); line-height: 1.55; }
+  .halaman { min-height: 100vh; display: grid; grid-template-columns: 1.15fr 1fr; }
+
+  /* Sisi kiri: halaman awal */
+  .awal { background: var(--hijau-tua); color: #fff; padding: 48px clamp(24px, 6vw, 80px); display: flex; flex-direction: column; justify-content: space-between; gap: 40px; }
+  .merek { font-weight: 700; font-size: 1.1rem; }
+  .jam { font-size: clamp(4rem, 11vw, 8rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; margin: 0; }
+  .tanggal { margin: 8px 0 28px; font-size: 1.15rem; color: #cfe5df; }
+  .awal h1 { font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.25; margin: 0 0 12px; max-width: 20ch; }
+  .awal p { margin: 0; max-width: 46ch; color: #d6e8e3; }
+  .peran { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; border-top: 1px solid rgba(255,255,255,.28); padding-top: 20px; }
+  .peran strong { display: block; margin-bottom: 2px; }
+  .peran span { font-size: .92rem; color: #cfe5df; }
+
+  /* Sisi kanan: login */
+  .masuk { display: flex; align-items: center; justify-content: center; padding: 32px 24px; }
+  .kartu { width: 100%; max-width: 380px; }
+  .kartu h2 { margin: 0 0 4px; font-size: 1.6rem; }
+  .kartu .sub { margin: 0 0 24px; color: var(--teks-lembut); }
+  label { display: block; font-weight: 600; margin: 16px 0 6px; }
+  input { width: 100%; font: inherit; padding: 13px 14px; border: 1.5px solid var(--garis); border-radius: 8px; background: #fff; color: var(--teks); }
+  input:focus-visible, button:focus-visible { outline: 3px solid #7fc4b3; outline-offset: 2px; border-color: var(--hijau); }
+  .baris-sandi { position: relative; }
+  .baris-sandi input { padding-right: 84px; }
+  .lihat { position: absolute; right: 6px; top: 6px; bottom: 6px; padding: 0 12px; border: 0; background: transparent; color: var(--hijau); font: inherit; font-weight: 600; cursor: pointer; border-radius: 6px; }
+  #tombol-masuk { width: 100%; margin-top: 24px; padding: 15px; border: 0; border-radius: 8px; background: var(--hijau); color: #fff; font: inherit; font-weight: 700; font-size: 1.05rem; cursor: pointer; }
+  #tombol-masuk:hover:not(:disabled) { background: var(--hijau-tua); }
+  #tombol-masuk:disabled { opacity: .7; cursor: wait; }
+  .pesan { margin: 16px 0 0; min-height: 1.5em; font-weight: 600; }
+  .pesan.error { color: var(--merah); }
+  .bantuan { margin-top: 20px; color: var(--teks-lembut); font-size: .95rem; }
+
+  @media (max-width: 820px) {
+    .halaman { grid-template-columns: 1fr; }
+    .awal { padding: 28px 24px; gap: 28px; }
+    .peran { grid-template-columns: 1fr; gap: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="halaman">
+  <section class="awal" aria-label="Halaman awal">
+    <div class="merek">Absensi PKL</div>
+    <div>
+      <p class="jam" id="jam" aria-hidden="true">00:00</p>
+      <p class="tanggal" id="tanggal"></p>
+      <h1>Catat kehadiran dan kegiatan PKL tanpa buku jurnal.</h1>
+      <p>Check-in dan check-out dari HP, tulis jurnal harian, dan lihat rekap kehadiran kapan saja. Waktu absen dicatat oleh server, jadi tidak bisa diubah dari HP.</p>
+    </div>
+    <div class="peran">
+      <div><strong>Siswa</strong><span>Absen, izin, dan jurnal</span></div>
+      <div><strong>Pembimbing</strong><span>Pantau dan setujui jurnal</span></div>
+      <div><strong>Admin</strong><span>Kelola akun dan rekap</span></div>
+    </div>
+  </section>
+
+  <main class="masuk">
+    <div class="kartu">
+      <h2>Masuk</h2>
+      <p class="sub">Gunakan akun yang diberikan admin.</p>
+      <form id="form-login" novalidate>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" placeholder="nama@sekolah.sch.id" required>
+        <label for="password">Password</label>
+        <div class="baris-sandi">
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button type="button" class="lihat" id="lihat" aria-label="Tampilkan password">Lihat</button>
+        </div>
+        <button type="submit" id="tombol-masuk">Masuk</button>
+        <p class="pesan" id="pesan" role="alert" aria-live="polite"></p>
+      </form>
+      <p class="bantuan">Lupa password? Hubungi admin.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Jam dan tanggal hanya hiasan tampilan. Waktu absen asli diambil dari server.
+  function perbaruiJam() {
+    const sekarang = new Date();
+    document.getElementById("jam").textContent =
+      sekarang.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false }).replace(".", ":");
+    document.getElementById("tanggal").textContent =
+      sekarang.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
+  perbaruiJam();
+  setInterval(perbaruiJam, 1000);
+
+  const sandi = document.getElementById("password");
+  const lihat = document.getElementById("lihat");
+  lihat.addEventListener("click", () => {
+    const tersembunyi = sandi.type === "password";
+    sandi.type = tersembunyi ? "text" : "password";
+    lihat.textContent = tersembunyi ? "Sembunyi" : "Lihat";
+    lihat.setAttribute("aria-label", tersembunyi ? "Sembunyikan password" : "Tampilkan password");
+  });
+</script>
+<script type="module" src="js/auth.js"></script>
+</body>
+</html>
