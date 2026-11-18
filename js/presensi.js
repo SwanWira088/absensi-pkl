@@ -1,11 +1,12 @@
 // =====================================================
 // presensi.js - Modul Presensi Harian
-// Isi: login sementara, check-in, check-out, riwayat
+// Isi: penjaga halaman, check-in, check-out, riwayat
+// Login dilakukan di index.html (lewat auth.js), bukan di sini.
 // =====================================================
 
 import { auth, db } from "./firebase-config.js";
 import {
-  signInWithEmailAndPassword, signOut, onAuthStateChanged
+  signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 import {
   doc, getDoc, setDoc, updateDoc, getDocs, collection, query, where, serverTimestamp
@@ -165,57 +166,36 @@ $("btnCheckOut").addEventListener("click", async () => {
 });
 
 
-// ---------- 7. LOGIN SEMENTARA ----------
-$("btnLihat").addEventListener("click", () => {          // tombol Lihat/Sembunyi password
-  const kolom = $("password");
-  const tampil = kolom.type === "password";
-  kolom.type = tampil ? "text" : "password";
-  $("btnLihat").textContent = tampil ? "Sembunyi" : "Lihat";
+// ---------- 7. KELUAR ----------
+$("btnKeluar").addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "index.html";     // kembali ke halaman login
 });
 
-$("password").addEventListener("keydown", (e) => {       // tombol Enter = Masuk
-  if (e.key === "Enter") $("btnMasuk").click();
-});
 
-$("btnMasuk").addEventListener("click", async () => {
-  const tombol = $("btnMasuk");
-  tombol.disabled = true;
-  tombol.textContent = "Memeriksa...";
-  try {
-    await signInWithEmailAndPassword(auth, $("email").value, $("password").value);
-    $("pesanLogin").textContent = "";
-  } catch (e) {
-    $("pesanLogin").textContent = "Email atau password salah.";
-    const kartu = document.querySelector(".login");      // kartu bergoyang
-    kartu.classList.remove("goyang");
-    void kartu.offsetWidth;
-    kartu.classList.add("goyang");
-  }
-  tombol.disabled = false;
-  tombol.textContent = "Masuk";
-});
-
-$("btnKeluar").addEventListener("click", () => signOut(auth));
-
-
-// ---------- 8. MEMANTAU STATUS LOGIN ----------
+// ---------- 8. PENJAGA HALAMAN ----------
+// Belum login, akun tidak terdaftar/nonaktif, atau bukan siswa -> kembali ke index.html
 onAuthStateChanged(auth, async (user) => {
-  if (!user) {                                // belum login: tampilkan form login
-    uid = null;
-    $("boxLogin").hidden = false;
-    $("boxAbsen").hidden = true;
+  if (!user) {
+    window.location.href = "index.html";
     return;
   }
 
-  uid = user.uid;                             // sudah login: tampilkan halaman absen
-  $("boxLogin").hidden = true;
-  $("boxAbsen").hidden = false;
-
+  let profil = null;
   try {
-    const siswa = await getDoc(doc(db, "users", uid));
-    $("sapaan").textContent = "Halo, " + (siswa.exists() ? siswa.data().nama : user.email);
+    const snap = await getDoc(doc(db, "users", user.uid));
+    profil = snap.exists() ? snap.data() : null;
   } catch (e) {
-    $("sapaan").textContent = "Halo, " + user.email;
+    console.error(e);
   }
+
+  if (!profil || profil.aktif === false || profil.role !== "siswa") {
+    window.location.href = "index.html";
+    return;
+  }
+
+  uid = user.uid;                             // lolos: tampilkan halaman absen
+  $("boxAbsen").hidden = false;
+  $("sapaan").textContent = "Halo, " + (profil.nama || user.email);
   await muatData();
 });
