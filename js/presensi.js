@@ -70,6 +70,10 @@ function tampilkan() {
     setStatus("Belum check-in", "Tekan tombol di bawah saat kamu tiba di tempat PKL.", "belum");
     $("btnCheckIn").disabled = false;
     $("btnCheckOut").disabled = true;
+  }  else if (hari.status === "izin" || hari.status === "sakit") {  // izin atau sakit
+    setStatus(hari.status, "Keterangan: " + hari.keterangan, hari.status);
+    $("btnCheckIn").disabled = true;
+    $("btnCheckOut").disabled = true;
   } else if (!hari.checkOut) {                   // sudah check-in, belum pulang
     setStatus(hari.status, `Check-in pukul ${formatJam(hari.checkIn)}`, hari.status);
     $("btnCheckIn").disabled = true;
@@ -164,6 +168,33 @@ $("btnCheckOut").addEventListener("click", async () => {
   }
   await muatData();
 });
+
+// ---------- IZIN DAN SAKIT ----------
+async function ajukan(jenis) {
+  const alasan = $("keterangan").value.trim();
+  if (alasan === "") {
+    tulisPesan("Isi keterangan dulu ya.");
+    return;
+  }
+  try {
+    await setDoc(doc(db, "attendance", `${uid}_${hariIni()}`), {
+      uid: uid,
+      tanggal: hariIni(),
+      checkIn: null,
+      checkOut: null,
+      status: jenis,
+      keterangan: alasan
+    });
+    tulisPesan("Pengajuan " + jenis + " berhasil dikirim.");
+  } catch (e) {
+    console.error(e);
+    tulisPesan("Gagal mengajukan: " + e.message);
+  }
+  await muatData();
+}
+
+$("btnIzin").addEventListener("click", () => ajukan("izin"));
+$("btnSakit").addEventListener("click", () => ajukan("sakit"));
 
 
 // ---------- 7. KELUAR ----------
