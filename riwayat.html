@@ -3,18 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Riwayat Kehadiran</title>
-  <link rel="stylesheet" href="css/absen-sementara.css">
-  <script type="module" src="js/riwayat.js"></script>
+  <title>Riwayat - Absensi PKL</title>
+
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <header class="atas">
+    <a class="merek" href="index.html">
+      <span class="logo">A</span>
+      <span>Absensi PKL</span>
+    </a>
+
+    <nav class="menu" aria-label="Navigasi utama">
+      <a href="absen.html">Absen</a>
+      <a href="riwayat.html">Riwayat</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
   <main class="layar">
     <div class="kartu">
+      <p class="sub">Halaman siswa</p>
       <h1>Riwayat Kehadiran</h1>
       <p class="sub">Semua absenmu, dari yang terbaru.</p>
+
+      <!-- Isi daftar dibuat oleh js/riwayat.js. -->
       <ul id="daftar" class="riwayat"></ul>
-      <a href="absen.html" class="teks">Kembali ke halaman absen</a>
+
+      <a class="teks" href="absen.html">Kembali ke halaman absen</a>
     </div>
   </main>
+
+  <script type="module" src="js/riwayat.js"></script>
 </body>
 </html>

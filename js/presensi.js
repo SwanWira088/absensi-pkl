@@ -1,164 +1,212 @@
-// =====================================================
-// presensi.js - Modul Presensi Harian
-// Isi: penjaga halaman, check-in, check-out, riwayat
-// Login dilakukan di index.html (lewat auth.js), bukan di sini.
-// =====================================================
+// presensi.js
+// Fitur harian siswa: check-in, check-out, izin/sakit, dan 5 riwayat terakhir.
+// Login tidak dibuat di sini. Kita memakai penjaga dari auth.js.
 
-import { auth, db } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
+import { jagaHalaman, keluar } from "./auth.js";
 import {
-  signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import {
-  doc, getDoc, setDoc, updateDoc, getDocs, collection, query, where, serverTimestamp
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-const $ = (id) => document.getElementById(id);   // singkatan untuk mengambil elemen
-
-let uid = null;        // id siswa yang sedang login
-let dataSaya = [];     // seluruh data absen siswa ini
-
-
-// ---------- 1. FUNGSI BANTU ----------
-function pad(n) {                       // 5 -> "05"
-  return String(n).padStart(2, "0");
+// Cara singkat mengambil elemen berdasarkan id.
+function ambil(id) {
+  return document.getElementById(id);
 }
 
-function hariIni() {                    // contoh: "2026-11-18"
+function duaAngka(angka) {
+  return String(angka).padStart(2, "0"); // 5 menjadi "05"
+}
+
+let uid = null;       // id siswa yang sedang login
+let dataSaya = [];    // semua data absen milik siswa tersebut
+
+
+// ---------- 1. FUNGSI TANGGAL DAN WAKTU ----------
+
+function tanggalHariIni() {
   const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return d.getFullYear() + "-" + duaAngka(d.getMonth() + 1) +
+    "-" + duaAngka(d.getDate()); // contoh: "2026-11-25"
 }
 
-function jamSekarang() {                // contoh: "09:55"
+function jamSekarang() {
   const d = new Date();
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return duaAngka(d.getHours()) + ":" + duaAngka(d.getMinutes()); // "09:55"
 }
 
-function formatJam(waktu) {             // waktu Firestore -> "09:55"
+// Waktu dari Firestore diubah dulu menjadi jam "09:55".
+function formatJam(waktu) {
   if (!waktu) return "-";
   const d = waktu.toDate();
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return duaAngka(d.getHours()) + ":" + duaAngka(d.getMinutes());
 }
+
+
+// ---------- 2. TEKS DI LAYAR ----------
 
 function tulisPesan(teks) {
-  $("pesan").textContent = teks;
+  ambil("pesan").textContent = teks;
 }
 
-function setStatus(label, detail, kelas) {   // mengatur label status di layar
-  $("status").textContent = label;
-  $("status").className = "badge " + kelas;
-  $("detailStatus").textContent = detail;
+function aturStatus(label, detail, kelas) {
+  const status = ambil("status");
+  status.textContent = label;
+  status.className = "badge " + kelas;
+  ambil("detailStatus").textContent = detail;
 }
 
-
-// ---------- 2. TANGGAL DAN JAM DI LAYAR ----------
-function updateJam() {
+// Jam di kartu hanya penunjuk waktu. Yang disimpan tetap waktu server.
+function perbaruiJam() {
   const d = new Date();
-  $("tanggal").textContent = d.toLocaleDateString("id-ID", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  ambil("tanggal").textContent = d.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
   });
-  $("jam").textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  ambil("jam").textContent = duaAngka(d.getHours()) + ":" +
+    duaAngka(d.getMinutes()) + ":" + duaAngka(d.getSeconds());
 }
-setInterval(updateJam, 1000);
-updateJam();
+
+perbaruiJam();
+setInterval(perbaruiJam, 1000);
 
 
-// ---------- 3. MENAMPILKAN DATA KE LAYAR ----------
+// ---------- 3. MENAMPILKAN STATUS HARI INI DAN RIWAYAT ----------
+
 function tampilkan() {
-  const hari = dataSaya.find((d) => d.tanggal === hariIni());
+  const hari = dataSaya.find(function (d) {
+    return d.tanggal === tanggalHariIni();
+  });
 
-  if (!hari) {                                   // belum check-in
-    setStatus("Belum check-in", "Tekan tombol di bawah saat kamu tiba di tempat PKL.", "belum");
-    $("btnCheckIn").disabled = false;
-    $("btnCheckOut").disabled = true;
-  }  else if (hari.status === "izin" || hari.status === "sakit") {  // izin atau sakit
-    setStatus(hari.status, "Keterangan: " + hari.keterangan, hari.status);
-    $("btnCheckIn").disabled = true;
-    $("btnCheckOut").disabled = true;
-  } else if (!hari.checkOut) {                   // sudah check-in, belum pulang
-    setStatus(hari.status, `Check-in pukul ${formatJam(hari.checkIn)}`, hari.status);
-    $("btnCheckIn").disabled = true;
-    $("btnCheckOut").disabled = false;
-  } else {                                       // sudah check-out
-    setStatus("Selesai",
-      `Masuk ${formatJam(hari.checkIn)}, pulang ${formatJam(hari.checkOut)}`, "selesai");
-    $("btnCheckIn").disabled = true;
-    $("btnCheckOut").disabled = true;
+  if (!hari) {
+    // Belum ada data hari ini.
+    aturStatus("Belum check-in", "Tekan tombol di bawah saat kamu tiba di tempat PKL.", "belum");
+    ambil("btnCheckIn").disabled = false;
+    ambil("btnCheckOut").disabled = true;
+  } else if (hari.status === "izin" || hari.status === "sakit") {
+    aturStatus(hari.status, "Keterangan: " + (hari.keterangan || "-"), hari.status);
+    ambil("btnCheckIn").disabled = true;
+    ambil("btnCheckOut").disabled = true;
+  } else if (!hari.checkOut) {
+    aturStatus(hari.status, "Check-in pukul " + formatJam(hari.checkIn), hari.status);
+    ambil("btnCheckIn").disabled = true;
+    ambil("btnCheckOut").disabled = false;
+  } else {
+    aturStatus(
+      "Selesai",
+      "Masuk " + formatJam(hari.checkIn) + ", pulang " + formatJam(hari.checkOut),
+      "selesai"
+    );
+    ambil("btnCheckIn").disabled = true;
+    ambil("btnCheckOut").disabled = true;
   }
 
-  // Riwayat 5 hari terakhir
-  const daftar = $("riwayat");
+  // Riwayat 5 hari terakhir.
+  const daftar = ambil("riwayat");
   daftar.innerHTML = "";
-  const terbaru = [...dataSaya]
-    .sort((a, b) => b.tanggal.localeCompare(a.tanggal))
+
+  const terbaru = dataSaya.slice()
+    .sort(function (a, b) {
+      return b.tanggal.localeCompare(a.tanggal);
+    })
     .slice(0, 5);
 
   if (terbaru.length === 0) {
-    const li = document.createElement("li");
-    li.className = "kosong";
-    li.textContent = "Belum ada riwayat";
-    daftar.appendChild(li);
+    const kosong = document.createElement("li");
+    kosong.className = "kosong";
+    kosong.textContent = "Belum ada riwayat";
+    daftar.appendChild(kosong);
   }
 
-  terbaru.forEach((d) => {
-    const li = document.createElement("li");
+  terbaru.forEach(function (d) {
+    const baris = document.createElement("li");
+
     const kiri = document.createElement("span");
-    kiri.textContent = `${d.tanggal} · ${formatJam(d.checkIn)}`;
-    const tag = document.createElement("span");
-    tag.className = "tag " + d.status;
-    tag.textContent = d.status;
-    li.append(kiri, tag);
-    daftar.appendChild(li);
+    kiri.textContent = d.tanggal + " · " + formatJam(d.checkIn);
+
+    const label = document.createElement("span");
+    label.className = "tag " + d.status;
+    label.textContent = d.status;
+
+    baris.appendChild(kiri);
+    baris.appendChild(label);
+    daftar.appendChild(baris);
   });
 }
 
 
-// ---------- 4. MENGAMBIL DATA DARI FIRESTORE ----------
+// ---------- 4. AMBIL DATA DARI FIRESTORE ----------
+
 async function muatData() {
   try {
     const hasil = await getDocs(
       query(collection(db, "attendance"), where("uid", "==", uid))
     );
-    dataSaya = hasil.docs.map((d) => d.data());
+
+    dataSaya = hasil.docs.map(function (dokumen) {
+      return dokumen.data();
+    });
+
     tampilkan();
   } catch (e) {
     console.error(e);
-    setStatus("Gagal memuat", e.message, "belum");
+    aturStatus("Gagal memuat", e.message, "belum");
     tulisPesan("Gagal memuat data: " + e.message);
   }
 }
 
 
 // ---------- 5. CHECK-IN ----------
-$("btnCheckIn").addEventListener("click", async () => {
-  $("btnCheckIn").disabled = true;
-  try {
-    const pengaturan = (await getDoc(doc(db, "settings", "config"))).data();
-    const status = jamSekarang() > pengaturan.batasTerlambat ? "terlambat" : "hadir";
 
-    await setDoc(doc(db, "attendance", `${uid}_${hariIni()}`), {
+async function checkIn() {
+  ambil("btnCheckIn").disabled = true;
+
+  try {
+    // Batas terlambat diambil dari pengaturan, bukan dari HP.
+    const pengaturan = (await getDoc(doc(db, "settings", "config"))).data();
+    const status = jamSekarang() > pengaturan.batasTerlambat
+      ? "terlambat"
+      : "hadir";
+
+    await setDoc(doc(db, "attendance", uid + "_" + tanggalHariIni()), {
       uid: uid,
-      tanggal: hariIni(),
-      checkIn: serverTimestamp(),     // waktu dari server, bukan jam HP
+      tanggal: tanggalHariIni(),
+      checkIn: serverTimestamp(), // waktu server, bukan jam perangkat
       checkOut: null,
       status: status,
       keterangan: ""
     });
+
     tulisPesan("Check-in berhasil.");
   } catch (e) {
     console.error(e);
-    tulisPesan(e.code === "permission-denied"
-      ? "Check-in ditolak. Kamu mungkin sudah absen hari ini."
-      : "Gagal check-in: " + e.message);
+    tulisPesan(
+      e.code === "permission-denied"
+        ? "Check-in ditolak. Kamu mungkin sudah absen hari ini."
+        : "Gagal check-in: " + e.message
+    );
   }
+
   await muatData();
-});
+}
 
 
 // ---------- 6. CHECK-OUT ----------
-$("btnCheckOut").addEventListener("click", async () => {
-  $("btnCheckOut").disabled = true;
+
+async function checkOut() {
+  ambil("btnCheckOut").disabled = true;
+
   try {
-    await updateDoc(doc(db, "attendance", `${uid}_${hariIni()}`), {
+    await updateDoc(doc(db, "attendance", uid + "_" + tanggalHariIni()), {
       checkOut: serverTimestamp()
     });
     tulisPesan("Check-out berhasil. Sampai besok!");
@@ -166,67 +214,64 @@ $("btnCheckOut").addEventListener("click", async () => {
     console.error(e);
     tulisPesan("Gagal check-out: " + e.message);
   }
-  await muatData();
-});
 
-// ---------- IZIN DAN SAKIT ----------
+  await muatData();
+}
+
+
+// ---------- 7. IZIN DAN SAKIT ----------
+
 async function ajukan(jenis) {
-  const alasan = $("keterangan").value.trim();
+  const alasan = ambil("keterangan").value.trim();
+
   if (alasan === "") {
     tulisPesan("Isi keterangan dulu ya.");
     return;
   }
+
   try {
-    await setDoc(doc(db, "attendance", `${uid}_${hariIni()}`), {
+    await setDoc(doc(db, "attendance", uid + "_" + tanggalHariIni()), {
       uid: uid,
-      tanggal: hariIni(),
+      tanggal: tanggalHariIni(),
       checkIn: null,
       checkOut: null,
       status: jenis,
       keterangan: alasan
     });
+
     tulisPesan("Pengajuan " + jenis + " berhasil dikirim.");
+    ambil("keterangan").value = "";
   } catch (e) {
     console.error(e);
     tulisPesan("Gagal mengajukan: " + e.message);
   }
+
   await muatData();
 }
 
-$("btnIzin").addEventListener("click", () => ajukan("izin"));
-$("btnSakit").addEventListener("click", () => ajukan("sakit"));
 
+// ---------- 8. PASANG PENDENGAR TOMBOL ----------
 
-// ---------- 7. KELUAR ----------
-$("btnKeluar").addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "index.html";     // kembali ke halaman login
+ambil("btnCheckIn").addEventListener("click", checkIn);
+ambil("btnCheckOut").addEventListener("click", checkOut);
+
+ambil("btnIzin").addEventListener("click", function () {
+  ajukan("izin");
 });
 
+ambil("btnSakit").addEventListener("click", function () {
+  ajukan("sakit");
+});
 
-// ---------- 8. PENJAGA HALAMAN ----------
-// Belum login, akun tidak terdaftar/nonaktif, atau bukan siswa -> kembali ke index.html
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
+ambil("btnKeluar").addEventListener("click", keluar);
 
-  let profil = null;
-  try {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    profil = snap.exists() ? snap.data() : null;
-  } catch (e) {
-    console.error(e);
-  }
 
-  if (!profil || profil.aktif === false || profil.role !== "siswa") {
-    window.location.href = "index.html";
-    return;
-  }
+// ---------- 9. PENJAGA HALAMAN ----------
+// Yang bukan siswa atau belum login akan dikirim kembali ke index.html.
 
-  uid = user.uid;                             // lolos: tampilkan halaman absen
-  $("boxAbsen").hidden = false;
-  $("sapaan").textContent = "Halo, " + (profil.nama || user.email);
-  await muatData();
+jagaHalaman(["siswa"], function (profil) {
+  uid = profil.uid;
+  ambil("boxAbsen").hidden = false;
+  ambil("sapaan").textContent = "Halo, " + (profil.nama || "siswa");
+  muatData();
 });

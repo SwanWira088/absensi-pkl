@@ -3,35 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Absen PKL</title>
-  <link rel="stylesheet" href="css/absen-sementara.css">
-  <script type="module" src="js/presensi.js"></script>
-  <a href="riwayat.html" class="teks">Lihat semua riwayat</a>
+  <title>Absen - Absensi PKL</title>
+
+  <!-- Tampilan memakai CSS yang sama dengan halaman lain. -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+  <!-- Header dipakai di semua halaman setelah login. -->
+  <header class="atas">
+    <a class="merek" href="index.html">
+      <span class="logo">A</span>
+      <span>Absensi PKL</span>
+    </a>
+
+    <nav class="menu" aria-label="Navigasi utama">
+      <a href="absen.html">Absen</a>
+      <a href="riwayat.html">Riwayat</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <!-- Awalnya disembunyikan. js/presensi.js akan menampilkannya setelah login terbaca. -->
   <main id="boxAbsen" class="layar" hidden>
     <div class="kartu">
+      <p class="sub">Halaman siswa</p>
       <h1 id="sapaan">Halo</h1>
       <p id="tanggal" class="sub"></p>
       <p id="jam" class="jam">00:00:00</p>
       <p id="status" class="badge belum">Memuat...</p>
       <p id="detailStatus" class="sub"></p>
 
-      <button id="btnCheckIn" class="utama besar">Check-in sekarang</button>
-      <button id="btnCheckOut" class="garis">Check-out</button>
+      <!-- Tombol utama untuk hadir. -->
+      <button id="btnCheckIn" class="tombol utama besar">Check-in sekarang</button>
+      <button id="btnCheckOut" class="tombol garis">Check-out</button>
+
+      <!-- Bagian izin dan sakit memakai satu kolom keterangan. -->
       <label for="keterangan">Keterangan izin atau sakit</label>
-<input id="keterangan" type="text" placeholder="Contoh: demam, ke dokter">
-<button id="btnIzin" class="garis">Izin</button>
-<button id="btnSakit" class="garis">Sakit</button>
+      <input id="keterangan" type="text" placeholder="Contoh: demam, ke dokter">
+
+      <div class="dua-tombol">
+        <button id="btnIzin" class="tombol garis">Izin</button>
+        <button id="btnSakit" class="tombol garis">Sakit</button>
+      </div>
+
       <p id="pesan" class="pesan" role="status"></p>
 
       <h2>Riwayat 5 hari terakhir</h2>
       <ul id="riwayat" class="riwayat"></ul>
 
-      <button id="btnKeluar" class="teks">Keluar</button>
+      <button id="btnKeluar" class="tombol teks">Keluar</button>
     </div>
   </main>
 
+  <script type="module" src="js/presensi.js"></script>
 </body>
 </html>

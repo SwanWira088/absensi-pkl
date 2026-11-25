@@ -3,18 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard</title>
+  <title>Dashboard - Absensi PKL</title>
+
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Dashboard</h1>
-  <p id="sapa"></p>
-  <button id="tombol-keluar">Keluar</button>
-  <script type="module">
-    import { jagaHalaman, keluar } from "./js/auth.js";
-    jagaHalaman(["pembimbing", "admin"], (profil) => {
-      document.getElementById("sapa").textContent = "Halo, " + profil.nama;
-    });
-    document.getElementById("tombol-keluar").addEventListener("click", keluar);
-  </script>
+
+  <header class="atas">
+    <a class="merek" href="index.html">
+      <span class="logo">A</span>
+      <span>Absensi PKL</span>
+    </a>
+
+    <nav class="menu" aria-label="Navigasi utama">
+      <a href="absen.html">Absen</a>
+      <a href="riwayat.html">Riwayat</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="layar lebar">
+    <div class="kartu">
+      <p class="sub">Halaman pembimbing / admin</p>
+      <h1 id="sapa">Dashboard</h1>
+      <p class="sub">Ringkasan kehadiran dan jurnal akan tampil di sini.</p>
+
+      <!-- Angka masih kosong karena fitur ini belum dikerjakan tim backend. -->
+      <div class="ringkasan">
+        <div><span>Hadir hari ini</span><strong>-</strong></div>
+        <div><span>Jurnal menunggu</span><strong>-</strong></div>
+        <div><span>Total siswa</span><strong>-</strong></div>
+      </div>
+
+      <p class="kecil">Bagian angka akan diisi setelah fitur lanjutan selesai.</p>
+      <button id="tombol-keluar" class="tombol garis">Keluar</button>
+    </div>
+  </main>
+
+  <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
