@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jurnal - Absensi PKL</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/jurnal.css">
+</head>
+<body data-halaman="jurnal">
+  <header class="atas">
+    <a class="merek" href="absen.html"><span class="logo">A</span> Absensi PKL</a>
+    <nav class="menu" aria-label="Navigasi utama">
+      <a href="absen.html">Absen</a><a href="riwayat.html">Riwayat</a>
+      <a href="jurnal.html" aria-current="page">Jurnal</a><a href="rekap.html">Rekap</a>
+    </nav>
+  </header>
+  <p class="pesan" id="memuat">Memeriksa akun...</p>
+  <main class="layar lebar modul-jurnal" id="isiHalaman" hidden>
+    <section class="kartu">
+      <p class="sub" id="sapaan"></p><h1>Jurnal Kegiatan</h1>
+      <p class="sub">Catat kegiatan PKL kamu hari ini.</p>
+      <form id="formJurnal">
+        <label for="tanggal">Tanggal</label><input id="tanggal" type="date" required>
+        <label for="judul">Judul kegiatan</label><input id="judul" maxlength="150" required placeholder="Contoh: Belajar HTML">
+        <label for="uraian">Uraian kegiatan</label><textarea id="uraian" rows="5" maxlength="5000" required placeholder="Ceritakan kegiatanmu..."></textarea>
+        <button id="btnSimpan" class="tombol utama" type="submit">Simpan jurnal</button>
+        <button id="btnBatal" class="tombol garis" type="button" hidden>Batal mengubah</button>
+      </form>
+      <p id="pesan" class="pesan" role="status"></p>
+      <h2>Riwayat jurnal saya</h2><div id="daftarJurnal" aria-live="polite">Memuat jurnal...</div>
+      <button id="btnKeluar" class="tombol teks">Keluar</button>
+    </section>
+  </main>
+  <script type="module" src="js/jurnal.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rekap Bulanan - Absensi PKL</title>
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/jurnal.css">
+</head>
+<body data-halaman="rekap">
+  <header class="atas">
+    <a class="merek" href="index.html"><span class="logo">A</span> Absensi PKL</a>
+    <nav class="menu" aria-label="Navigasi utama"><a id="linkKembali" href="index.html">Beranda</a><a id="linkJurnal" href="jurnal.html">Jurnal</a><a href="rekap.html" aria-current="page">Rekap</a></nav>
+  </header>
+  <p id="memuat" class="pesan">Memeriksa akun...</p>
+  <main id="isiHalaman" class="layar lebar modul-jurnal" hidden>
+    <section class="kartu">
+      <p class="sub" id="sapaan"></p><h1>Rekap Kehadiran Bulanan</h1>
+      <div id="pilihSiswa" hidden><label for="siswa">Pilih siswa</label><select id="siswa"></select></div>
+      <label for="bulan">Pilih bulan</label><input type="month" id="bulan" required>
+      <button id="btnMuat" class="tombol utama" type="button">Tampilkan rekap</button>
+      <p id="pesan" class="pesan" role="status"></p>
+      <div class="ringkasan" id="angkaRekap" hidden></div>
+      <h2>Jurnal bulan ini</h2><div id="daftarJurnal"></div>
+      <button id="btnPDF" class="tombol utama" disabled>Unduh PDF</button>
+      <button id="btnKeluar" class="tombol teks">Keluar</button>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@3.0.3/dist/jspdf.umd.min.js"></script>
+  <script type="module" src="js/jurnal.js"></script>
+</body>
+</html>

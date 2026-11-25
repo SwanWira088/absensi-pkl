@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Persetujuan Jurnal - Absensi PKL</title>
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/jurnal.css">
+</head>
+<body data-halaman="persetujuan">
+  <header class="atas">
+    <a class="merek" href="dashboard.html"><span class="logo">A</span> Absensi PKL</a>
+    <nav class="menu" aria-label="Navigasi utama"><a href="dashboard.html">Dashboard</a><a href="persetujuan-jurnal.html" aria-current="page">Jurnal</a><a href="rekap.html">Rekap</a></nav>
+  </header>
+  <p id="memuat" class="pesan">Memeriksa akun...</p>
+  <main id="isiHalaman" class="layar lebar modul-jurnal" hidden>
+    <section class="kartu">
+      <p class="sub" id="sapaan"></p><h1>Persetujuan Jurnal</h1><p class="sub">Periksa jurnal siswa yang masih menunggu.</p>
+      <p id="pesan" class="pesan" role="status"></p>
+      <h2>Jurnal menunggu (<span id="jumlahMenunggu">0</span>)</h2>
+      <div id="daftarJurnal" aria-live="polite">Memuat jurnal...</div>
+      <button id="btnKeluar" class="tombol teks">Keluar</button>
+    </section>
+  </main>
+  <script type="module" src="js/jurnal.js"></script>
+</body>
+</html>
